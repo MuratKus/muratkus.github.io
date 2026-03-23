@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Murat Kuş — QA Engineer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0e0e0e;
+      --surface: #161616;
+      --border: #2a2a2a;
+      --text: #e8e4db;
+      --muted: #6b6b6b;
+      --accent: #c8ff6e;
+      --accent2: #ff8c5a;
+      --mono: 'IBM Plex Mono', monospace;
+      --serif: 'Fraunces', serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .site-root {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 72px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 24px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      transition: color 0.15s;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .hero { margin-bottom: 80px; }
+
+    .hero-eyebrow {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .hero-name {
+      font-family: var(--serif);
+      font-size: 56px;
+      font-weight: 300;
+      line-height: 1.1;
+      margin-bottom: 20px;
+      color: var(--text);
+    }
+
+    .hero-name em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .hero-desc {
+      font-size: 13px;
+      color: var(--muted);
+      max-width: 440px;
+      line-height: 1.8;
+      margin-bottom: 28px;
+    }
+
+    .hero-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 32px;
+    }
+
+    .tag {
+      font-size: 11px;
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+
+    .tag.active {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .btn {
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 10px 20px;
+      cursor: pointer;
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      border: none;
+      transition: all 0.15s;
+      display: inline-block;
+    }
+
+    .btn-primary { background: var(--accent); color: #0e0e0e; }
+    .btn-primary:hover { background: #b8ef5e; }
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .btn-ghost:hover { border-color: var(--text); color: var(--text); }
+
+    .section-label {
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .section { margin-bottom: 72px; }
+
+    .terminal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 20px 24px;
+      margin-bottom: 40px;
+    }
+
+    .terminal-bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .dot-r { background: #ff5f57; }
+    .dot-y { background: #febc2e; }
+    .dot-g { background: #28c840; }
+
+    .terminal-line { font-size: 12px; line-height: 1.9; }
+    .prompt { color: var(--accent); margin-right: 8px; }
+    .cmd { color: var(--text); }
+    .out { color: var(--muted); }
+    .hi { color: var(--accent2); }
+
+    .exp-item {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 0 24px;
+      padding: 20px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .exp-item:first-child { border-top: 1px solid var(--border); }
+
+    .exp-date { font-size: 11px; color: var(--muted); padding-top: 2px; letter-spacing: 0.04em; }
+    .exp-role { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+    .exp-company { font-size: 12px; color: var(--accent2); margin-bottom: 6px; }
+    .exp-note { font-size: 12px; color: var(--muted); line-height: 1.7; }
+
+    .projects-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .project-card { background: var(--bg); padding: 20px; transition: background 0.15s; }
+    .project-card:hover { background: var(--surface); }
+    .project-card.wip { opacity: 0.5; }
+
+    .project-status {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      color: var(--muted);
+    }
+
+    .project-status.live { color: var(--accent); }
+    .project-status.wip-label { color: var(--accent2); }
+
+    .project-name { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+    .project-desc { font-size: 11px; color: var(--muted); line-height: 1.7; margin-bottom: 12px; }
+
+    .project-stack { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .stack-pill {
+      font-size: 10px;
+      padding: 2px 8px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .human-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+    .human-card { border: 1px solid var(--border); padding: 16px; }
+    .human-icon { font-size: 20px; margin-bottom: 8px; }
+    .human-title { font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+    .human-desc { font-size: 11px; color: var(--muted); line-height: 1.7; }
+
+    .contact-row { display: flex; gap: 16px; flex-wrap: wrap; }
+
+    .contact-link {
+      font-size: 12px;
+      color: var(--muted);
+      text-decoration: none;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 2px;
+      transition: all 0.15s;
+      letter-spacing: 0.04em;
+    }
+
+    .contact-link:hover { color: var(--accent); border-color: var(--accent); }
+
+    @media (max-width: 600px) {
+      .hero-name { font-size: 40px; }
+      .exp-item { grid-template-columns: 1fr; }
+      .exp-date { margin-bottom: 4px; }
+      .projects-grid { grid-template-columns: 1fr; }
+      .human-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="site-root">
+    <nav class="nav">
+      <span class="nav-logo">mk.dev</span>
+      <ul class="nav-links">
+        <li><a href="#work">work</a></li>
+        <li><a href="#projects">projects</a></li>
+        <li><a href="#human">human</a></li>
+        <li><a href="#contact">contact</a></li>
+      </ul>
+    </nav>
+
+    <section class="hero">
+      <p class="hero-eyebrow">Berlin · QA Engineering · 10+ yrs</p>
+      <h1 class="hero-name">Murat<br><em>Kuş</em></h1>
+      <p class="hero-desc">
+        I make software ship reliably. Not by adding more tests — by building quality systems that tell you what actually matters.
+      </p>
+      <div class="hero-tags">
+        <span class="tag active">Mobile automation</span>
+        <span class="tag active">QA strategy</span>
+        <span class="tag">Head of QA</span>
+        <span class="tag">CI/CD</span>
+        <span class="tag">Espresso · XCUITest · Appium</span>
+      </div>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="#">Download CV</a>
+        <a class="btn btn-ghost" href="#contact">Get in touch</a>
+      </div>
+    </section>
+
+    <section class="section" id="about">
+      <p class="section-label">about</p>
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="dot dot-r"></div>
+          <div class="dot dot-y"></div>
+          <div class="dot dot-g"></div>
+        </div>
+        <div class="terminal-line"><span class="prompt">$</span><span class="cmd">whoami</span></div>
+        <div class="terminal-line"><span class="out">Senior QA engineer based in <span class="hi">Berlin</span>.</span></div>
+        <div class="terminal-line"><span class="out">Built QA orgs from 0→15 at Gorillas. Designed release governance at scale.</span></div>
+        <div class="terminal-line"><span class="out">Hands-on with Appium, Espresso, XCUITest — and the strategy layer above it.</span></div>
+        <div class="terminal-line" style="margin-top:8px"><span class="prompt">$</span><span class="cmd">cat languages.txt</span></div>
+        <div class="terminal-line"><span class="out">Turkish (native) · English (fluent) · German (<span class="hi">learning, B1→B2</span>)</span></div>
+        <div class="terminal-line" style="margin-top:8px"><span class="prompt">$</span><span class="cmd">echo $STATUS</span></div>
+        <div class="terminal-line"><span class="hi">Open to roles · Berlin preferred · Remote considered</span></div>
+      </div>
+    </section>
+
+    <section class="section" id="work">
+      <p class="section-label">experience</p>
+
+      <div class="exp-item">
+        <div class="exp-date">2023 – now</div>
+        <div>
+          <div class="exp-role">Freelance / Independent</div>
+          <div class="exp-company">GLS/NXT + others</div>
+          <div class="exp-note">Engineering lead support, QA strategy consulting, test tooling.</div>
+        </div>
+      </div>
+
+      <div class="exp-item">
+        <div class="exp-date">2021 – 2023</div>
+        <div>
+          <div class="exp-role">Engineering Manager → Head of QA</div>
+          <div class="exp-company">Gorillas Technologies</div>
+          <div class="exp-note">Built QA org to 15 engineers. Reduced support response 48min → 3min. Led through 2 acquisitions.</div>
+        </div>
+      </div>
+
+      <div class="exp-item">
+        <div class="exp-date">2018 – 2020</div>
+        <div>
+          <div class="exp-role">Senior QA Engineer</div>
+          <div class="exp-company">FromAtoB</div>
+          <div class="exp-note">Solo QA → hired and built the team. Analytics-driven test prioritisation.</div>
+        </div>
+      </div>
+
+      <div class="exp-item">
+        <div class="exp-date">2017 – 2019</div>
+        <div>
+          <div class="exp-role">QA Engineer</div>
+          <div class="exp-company">HelloFresh</div>
+          <div class="exp-note">QA lead for 25+ contributor project. Mobile testing workshops.</div>
+        </div>
+      </div>
+
+      <div class="exp-item">
+        <div class="exp-date">2014 – 2016</div>
+        <div>
+          <div class="exp-role">QA Engineer</div>
+          <div class="exp-company">Monitise MEA, Istanbul</div>
+          <div class="exp-note">Mobile banking & airline apps. Built custom Appium Grid in Java.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="projects">
+      <p class="section-label">projects</p>
+      <div class="projects-grid">
+
+        <div class="project-card">
+          <div class="project-status live">live</div>
+          <div class="project-name">Maestro CI flows</div>
+          <div class="project-desc">Smoke + regression suite for a production mobile app. Adopted by the product team for release validation.</div>
+          <div class="project-stack">
+            <span class="stack-pill">Maestro</span>
+            <span class="stack-pill">GitHub Actions</span>
+            <span class="stack-pill">iOS/Android</span>
+          </div>
+        </div>
+
+        <div class="project-card">
+          <div class="project-status live">live</div>
+          <div class="project-name">Flaky test detector</div>
+          <div class="project-desc">CLI that parses CI logs, categorises failures by stacktrace, flags non-deterministic tests for quarantine.</div>
+          <div class="project-stack">
+            <span class="stack-pill">Java</span>
+            <span class="stack-pill">Bash</span>
+            <span class="stack-pill">CI logs</span>
+          </div>
+        </div>
+
+        <div class="project-card wip">
+          <div class="project-status wip-label">in progress</div>
+          <div class="project-name">? — coming soon</div>
+          <div class="project-desc">This card is a placeholder. The honest answer is: I'm building things. Watch this space.</div>
+          <div class="project-stack">
+            <span class="stack-pill">TBD</span>
+          </div>
+        </div>
+
+        <div class="project-card wip">
+          <div class="project-status wip-label">in progress</div>
+          <div class="project-name">? — coming soon</div>
+          <div class="project-desc">More in the pipeline. Follow GitHub for updates.</div>
+          <div class="project-stack">
+            <span class="stack-pill">TBD</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="section" id="human">
+      <p class="section-label">human</p>
+      <div class="human-grid">
+        <div class="human-card">
+          <div class="human-icon">🐕</div>
+          <div class="human-title">Dog person</div>
+          <div class="human-desc">My dog is probably the most important QA feedback loop in my life. Immediate, honest, no flakiness.</div>
+        </div>
+        <div class="human-card">
+          <div class="human-icon">🍳</div>
+          <div class="human-title">Home cook</div>
+          <div class="human-desc">Cooking is debugging with better outcomes. Turkish roots, Berlin pantry, experimental mindset.</div>
+        </div>
+        <div class="human-card">
+          <div class="human-icon">🪴</div>
+          <div class="human-title">Side business</div>
+          <div class="human-desc">Ran a small side venture — dormant for now, but building things outside of work is a habit I like.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="contact">
+      <p class="section-label">contact</p>
+      <div class="contact-row">
+        <a class="contact-link" href="mailto:me@murat-kus.com">me@murat-kus.com</a>
+        <a class="contact-link" href="https://linkedin.com/in/murat-kuş-5100aa48" target="_blank">LinkedIn</a>
+        <a class="contact-link" href="https://github.com/MuratKus" target="_blank">GitHub</a>
+        <a class="contact-link" href="https://stackoverflow.com/users/3894496/sthqa" target="_blank">Stack Overflow</a>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
