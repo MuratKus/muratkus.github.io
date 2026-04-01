@@ -217,6 +217,14 @@
 
     .project-card { background: var(--bg); padding: 20px; transition: background 0.15s; }
     .project-card:hover { background: var(--surface); }
+    a.project-card { text-decoration: none; color: inherit; cursor: pointer; }
+    a.project-card .project-name::after {
+      content: ' ↗';
+      font-size: 16px;
+      color: var(--accent);
+      opacity: 0.6;
+    }
+    a.project-card:hover .project-name::after { opacity: 1; }
     .project-card.wip { opacity: 0.5; }
 
     .project-status {
@@ -315,6 +323,8 @@
         <div class="terminal-line"><span class="out">Senior QA engineer based in <span class="hi">Berlin</span>.</span></div>
         <div class="terminal-line"><span class="out">Built QA orgs from 0→15 at Gorillas. Designed release governance at scale.</span></div>
         <div class="terminal-line"><span class="out">Hands-on with Appium, Espresso, XCUITest, Playwright, and the strategy layer above it.</span></div>
+        <div class="terminal-line" style="margin-top:8px"><span class="prompt">$</span><span class="cmd">ls ~/side-quests/</span></div>
+        <div class="terminal-line"><span class="out">gamedev/  <span class="hi">chefs-odyssey</span>  poker-for-bored-devs/  idle-game-wip/</span></div>
         <div class="terminal-line" style="margin-top:8px"><span class="prompt">$</span><span class="cmd">cat languages.txt</span></div>
         <div class="terminal-line"><span class="out">Turkish (native) · English (fluent) · German (<span class="hi">learning, B1→B2</span>)</span></div>
         <div class="terminal-line" style="margin-top:8px"><span class="prompt">$</span><span class="cmd">echo $STATUS</span></div>
@@ -386,7 +396,7 @@
           </div>
         </div>
 
-        <div class="project-card">
+        <a class="project-card" href="https://github.com/MuratKus/flaky-test-detector" target="_blank">
           <div class="project-status live">live</div>
           <div class="project-name">Flaky test detector</div>
           <div class="project-desc">CLI that parses CI logs, categorises failures by stacktrace, flags non-deterministic tests for quarantine.</div>
@@ -395,21 +405,33 @@
             <span class="stack-pill">Bash</span>
             <span class="stack-pill">CI logs</span>
           </div>
-        </div>
+        </a>
 
         <div class="project-card wip">
           <div class="project-status wip-label">in progress</div>
-          <div class="project-name">? — coming soon</div>
-          <div class="project-desc">This card is a placeholder. The honest answer is: I'm building things. Watch this space.</div>
+          <div class="project-name">Chef's Odyssey</div>
+          <div class="project-desc">Horde survivor game where you fight waves of kitchen nightmares. A hobby project born from too many cooking shows and too many roguelikes.</div>
           <div class="project-stack">
-            <span class="stack-pill">TBD</span>
+            <span class="stack-pill">Unity</span>
+            <span class="stack-pill">C#</span>
+            <span class="stack-pill">2D</span>
           </div>
         </div>
 
+        <a class="project-card wip" href="https://github.com/MuratKus/sidecar-poker" target="_blank">
+          <div class="project-status wip-label">shipping soon</div>
+          <div class="project-name">Sidecar Poker</div>
+          <div class="project-desc">Tiny poker game for bored devs waiting on Claude. Because idle hands need idle cards.</div>
+          <div class="project-stack">
+            <span class="stack-pill">TypeScript</span>
+            <span class="stack-pill">Gimmick</span>
+          </div>
+        </a>
+
         <div class="project-card wip">
-          <div class="project-status wip-label">in progress</div>
-          <div class="project-name">? — coming soon</div>
-          <div class="project-desc">More in the pipeline. Follow GitHub for updates.</div>
+          <div class="project-status wip-label">planned</div>
+          <div class="project-name">Idle game</div>
+          <div class="project-desc">An idle/incremental game. Concept brewing — details incoming.</div>
           <div class="project-stack">
             <span class="stack-pill">TBD</span>
           </div>
