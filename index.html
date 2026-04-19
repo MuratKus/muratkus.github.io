@@ -399,11 +399,22 @@
         <a class="project-card" href="https://github.com/MuratKus/flaky-test-detector" target="_blank">
           <div class="project-status live">live</div>
           <div class="project-name">Flaky test detector</div>
-          <div class="project-desc">CLI that parses CI logs, categorises failures by stacktrace, flags non-deterministic tests for quarantine.</div>
+          <div class="project-desc">Python CLI that parses JUnit XML, Allure JSON, and Gradle logs. Fingerprints failures by normalised stacktrace, tracks flakiness scores in SQLite, and outputs HTML reports with CI gating via GitHub Actions.</div>
           <div class="project-stack">
-            <span class="stack-pill">Java</span>
-            <span class="stack-pill">Bash</span>
-            <span class="stack-pill">CI logs</span>
+            <span class="stack-pill">Python</span>
+            <span class="stack-pill">SQLite</span>
+            <span class="stack-pill">GitHub Actions</span>
+          </div>
+        </a>
+
+        <a class="project-card" href="https://github.com/MuratKus/qaradar" target="_blank">
+          <div class="project-status live">live</div>
+          <div class="project-name">QA Radar</div>
+          <div class="project-desc">Three-signal model (git churn · coverage · test mapping) that risk-scores modules so you know which code needs tests most. Ships as an MCP server for Claude Code, Cursor, and Windsurf — and as a CLI for CI pipelines.</div>
+          <div class="project-stack">
+            <span class="stack-pill">Python</span>
+            <span class="stack-pill">MCP</span>
+            <span class="stack-pill">PyPI</span>
           </div>
         </a>
 
