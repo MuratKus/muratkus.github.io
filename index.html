@@ -257,7 +257,7 @@
       color: var(--muted);
     }
 
-    .human-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    .human-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
 
     .human-card { border: 1px solid var(--border); padding: 16px; }
     .human-icon { font-size: 25px; margin-bottom: 8px; }
@@ -330,8 +330,8 @@
         <div class="terminal-line"><span class="out">Senior QA engineer based in <span class="hi">Berlin</span>.</span></div>
         <div class="terminal-line"><span class="out">Built QA orgs from 0→15 at Gorillas. Designed release governance at scale.</span></div>
         <div class="terminal-line"><span class="out">Hands-on with Appium, Espresso, XCUITest, Playwright, and the strategy layer above it.</span></div>
-        <div class="terminal-line" style="margin-top:8px"><span class="prompt">$</span><span class="cmd">ls ~/side-quests/</span></div>
-        <div class="terminal-line"><span class="out">gamedev/  <span class="hi">chefs-odyssey</span>  poker-for-bored-devs/  idle-game-wip/</span></div>
+        <div class="terminal-line" style="margin-top:8px"><span class="prompt">$</span><span class="cmd">ls ~/qa-projects/</span></div>
+        <div class="terminal-line"><span class="out"><span class="hi"> qa-radar/</span> maestro-ci-flows/ flaky-test-detector/</span></div>
         <div class="terminal-line" style="margin-top:8px"><span class="prompt">$</span><span class="cmd">cat languages.txt</span></div>
         <div class="terminal-line"><span class="out">Turkish (native) · English (fluent) · German (<span class="hi">learning, B1→B2</span>)</span></div>
         <div class="terminal-line" style="margin-top:8px"><span class="prompt">$</span><span class="cmd">echo $STATUS</span></div>
@@ -404,17 +404,6 @@
           </div>
         </a>
 
-        <div class="project-card">
-          <div class="project-status live">live</div>
-          <div class="project-name">Maestro CI flows</div>
-          <div class="project-desc">Smoke + regression suite for a production mobile app. Adopted by the product team for release validation.</div>
-          <div class="project-stack">
-            <span class="stack-pill">Maestro</span>
-            <span class="stack-pill">GitHub Actions</span>
-            <span class="stack-pill">iOS/Android</span>
-          </div>
-        </div>
-
         <a class="project-card" href="https://github.com/MuratKus/qaradar" target="_blank">
           <div class="project-status live">live</div>
           <div class="project-name">QA Radar</div>
@@ -425,6 +414,17 @@
             <span class="stack-pill">PyPI</span>
           </div>
         </a>
+
+        <div class="project-card">
+          <div class="project-status live">live</div>
+          <div class="project-name">Maestro CI flows</div>
+          <div class="project-desc">Smoke + regression suite for a production mobile app. Adopted by the product team for release validation.</div>
+          <div class="project-stack">
+            <span class="stack-pill">Maestro</span>
+            <span class="stack-pill">GitHub Actions</span>
+            <span class="stack-pill">iOS/Android</span>
+          </div>
+        </div>
 
         <a class="project-card" href="https://github.com/MuratKus/sidecar-poker" target="_blank">
           <div class="project-status live">live</div>
@@ -476,6 +476,11 @@
           <div class="human-icon">🪴</div>
           <div class="human-title">Mimos Küche</div>
           <div class="human-desc">Side business cooking, baking, and catering. You can, from time to time, find me at Berlin Markets.</div>
+        </div>
+        <div class="human-card">
+          <div class="human-icon">🎮</div>
+          <div class="human-title">After hours</div>
+          <div class="human-desc">I make small games and playful dev side projects when I want to learn by building something weird and fun.</div>
         </div>
       </div>
     </section>
