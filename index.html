@@ -215,6 +215,13 @@
       border: 1px solid var(--border);
     }
 
+    .projects-note {
+      font-size: 13px;
+      color: var(--muted);
+      margin: -8px 0 18px;
+      letter-spacing: 0.04em;
+    }
+
     .project-card { background: var(--bg); padding: 20px; transition: background 0.15s; }
     .project-card:hover { background: var(--surface); }
     a.project-card { text-decoration: none; color: inherit; cursor: pointer; }
@@ -296,7 +303,7 @@
       <p class="hero-eyebrow">Berlin · QA Engineering and Leadership · 10+ yrs</p>
       <h1 class="hero-name">Murat<br><em>Kuş</em></h1>
       <p class="hero-desc">
-        I make software ship reliably by building quality systems and gates that tell you what actually matters. I also love to explore domains vigorously and find weaknesses. 
+        I make software ship reliably by building quality systems and gates that tell you what actually matters. I learn complex domains quickly and find reliability risks before users do.
       </p>
       <div class="hero-tags">
         <span class="tag active">Mobile automation</span>
@@ -383,18 +390,8 @@
 
     <section class="section" id="projects">
       <p class="section-label">projects</p>
+      <p class="projects-note">Python · CI/CD · JUnit XML · Allure · GitHub Actions · test reliability</p>
       <div class="projects-grid">
-
-        <div class="project-card">
-          <div class="project-status live">live</div>
-          <div class="project-name">Maestro CI flows</div>
-          <div class="project-desc">Smoke + regression suite for a production mobile app. Adopted by the product team for release validation.</div>
-          <div class="project-stack">
-            <span class="stack-pill">Maestro</span>
-            <span class="stack-pill">GitHub Actions</span>
-            <span class="stack-pill">iOS/Android</span>
-          </div>
-        </div>
 
         <a class="project-card" href="https://github.com/MuratKus/flaky-test-detector" target="_blank">
           <div class="project-status live">live</div>
@@ -406,6 +403,17 @@
             <span class="stack-pill">GitHub Actions</span>
           </div>
         </a>
+
+        <div class="project-card">
+          <div class="project-status live">live</div>
+          <div class="project-name">Maestro CI flows</div>
+          <div class="project-desc">Smoke + regression suite for a production mobile app. Adopted by the product team for release validation.</div>
+          <div class="project-stack">
+            <span class="stack-pill">Maestro</span>
+            <span class="stack-pill">GitHub Actions</span>
+            <span class="stack-pill">iOS/Android</span>
+          </div>
+        </div>
 
         <a class="project-card" href="https://github.com/MuratKus/qaradar" target="_blank">
           <div class="project-status live">live</div>
