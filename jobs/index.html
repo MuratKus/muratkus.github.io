@@ -4,137 +4,461 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
-  <title>JobHunt</title>
+  <title>JobHunt · mission control</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; color: #202124; background: #f8f9fa; }
-    main { max-width: 1200px; margin: 0 auto; padding: 24px; }
-    .login { max-width: 360px; margin: 12vh auto; background: #fff; border: 1px solid #dadce0; border-radius: 8px; padding: 24px; }
-    input, select { padding: 8px 10px; border: 1px solid #bdc1c6; border-radius: 6px; font: inherit; box-sizing: border-box; }
-    .login input { width: 100%; margin-top: 10px; }
-    button { cursor: pointer; border-radius: 6px; border: 1px solid #dadce0; background: #fff; padding: 6px 10px; font: inherit; }
-    button.primary { background: #1a73e8; color: #fff; border: 0; width: 100%; margin-top: 14px; padding: 10px; font-weight: 700; }
-    .controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 16px 0; }
-    table { border-collapse: collapse; width: 100%; background: #fff; }
-    th, td { border: 1px solid #dadce0; padding: 8px; vertical-align: top; text-align: left; font-size: 14px; }
-    th { background: #f1f3f4; cursor: pointer; user-select: none; }
-    .muted { color: #5f6368; font-size: 12px; }
-    .react { font-size: 18px; line-height: 1; padding: 2px 6px; }
-    .react.active { background: #e8f0fe; border-color: #1a73e8; }
-    .note { width: 100%; min-width: 160px; }
-    .err { color: #b3261e; min-height: 18px; }
-    .row-applied { background: #e6f4ea; }
-    .row-hidden { opacity: 0.45; }
+    :root {
+      --bg: #0a0c12;
+      --bg-grid: rgba(124,108,255,0.04);
+      --col: #0f131d;
+      --card: #151b29;
+      --card-hi: #1b2334;
+      --border: #232c3e;
+      --border-hi: #313c52;
+      --text: #e7eaf3;
+      --muted: #8b94aa;
+      --faint: #5c6478;
+      --accent: #8b7bff;
+      --accent-dim: #6b5fd0;
+      --teal: #2dd4bf;
+      --good: #34d399;
+      --mid: #fbbf24;
+      --low: #fb7185;
+      --shadow: 0 14px 40px -18px rgba(0,0,0,0.8);
+      --mono: "JetBrains Mono", ui-monospace, monospace;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; color: var(--text);
+      font-family: "Sora", system-ui, sans-serif;
+      background:
+        radial-gradient(1200px 600px at 80% -10%, rgba(139,123,255,0.10), transparent 60%),
+        radial-gradient(900px 500px at -10% 110%, rgba(45,212,191,0.07), transparent 55%),
+        linear-gradient(var(--bg-grid) 1px, transparent 1px) 0 0 / 100% 28px,
+        var(--bg);
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    ::-webkit-scrollbar { height: 10px; width: 10px; }
+    ::-webkit-scrollbar-thumb { background: #232c3e; border-radius: 20px; border: 2px solid transparent; background-clip: padding-box; }
+    ::-webkit-scrollbar-thumb:hover { background: #31405c; background-clip: padding-box; }
+
+    /* ---------- Login ---------- */
+    .login-wrap { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+    .login {
+      width: 100%; max-width: 380px; background: linear-gradient(180deg, var(--card-hi), var(--card));
+      border: 1px solid var(--border); border-radius: 18px; padding: 34px 30px; box-shadow: var(--shadow);
+    }
+    .brandmark { display: flex; align-items: center; gap: 12px; margin-bottom: 26px; }
+    .logo {
+      width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center;
+      background: conic-gradient(from 140deg, var(--accent), var(--teal), var(--accent));
+      box-shadow: 0 0 22px -4px rgba(139,123,255,0.65); color: #0a0c12; font-weight: 800;
+    }
+    .brandmark h1 { font-size: 17px; margin: 0; letter-spacing: 0.2px; }
+    .brandmark .sub { font: 600 10px/1 var(--mono); letter-spacing: 2px; text-transform: uppercase; color: var(--accent); }
+    .login label { display: block; font: 600 10px/1 var(--mono); letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin: 16px 0 7px; }
+    .login input {
+      width: 100%; padding: 12px 13px; background: #0c1019; border: 1px solid var(--border);
+      border-radius: 10px; transition: border-color .15s, box-shadow .15s;
+    }
+    .login input:focus { outline: none; border-color: var(--accent-dim); box-shadow: 0 0 0 3px rgba(139,123,255,0.18); }
+    .btn-primary {
+      width: 100%; margin-top: 22px; padding: 13px; border: 0; border-radius: 11px; cursor: pointer;
+      font-weight: 700; letter-spacing: 0.3px; color: #0a0c12;
+      background: linear-gradient(180deg, #a596ff, var(--accent)); box-shadow: 0 10px 24px -10px rgba(139,123,255,0.8);
+      transition: transform .12s, filter .15s;
+    }
+    .btn-primary:hover { filter: brightness(1.07); transform: translateY(-1px); }
+    .err { color: var(--low); font: 500 12.5px/1.5 var(--mono); min-height: 18px; margin: 12px 0 0; }
+
+    /* ---------- Shell ---------- */
+    .app { display: flex; flex-direction: column; height: 100vh; }
+    header.topbar {
+      display: flex; align-items: center; gap: 18px; padding: 13px 22px;
+      border-bottom: 1px solid var(--border); background: rgba(10,12,18,0.7); backdrop-filter: blur(10px);
+    }
+    .topbar .brandmark { margin: 0; }
+    .search {
+      flex: 1; max-width: 520px; position: relative;
+    }
+    .search input {
+      width: 100%; padding: 10px 14px 10px 38px; background: #0c1019; border: 1px solid var(--border);
+      border-radius: 11px; transition: border-color .15s, box-shadow .15s;
+    }
+    .search input:focus { outline: none; border-color: var(--accent-dim); box-shadow: 0 0 0 3px rgba(139,123,255,0.16); }
+    .search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--faint); }
+    .spacer { flex: 1; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--good); box-shadow: 0 0 8px var(--good); }
+    .stamp { font: 500 11px/1 var(--mono); color: var(--muted); display: flex; align-items: center; gap: 7px; }
+    .ghost {
+      background: transparent; border: 1px solid var(--border); border-radius: 10px; padding: 8px 13px;
+      color: var(--muted); cursor: pointer; transition: border-color .15s, color .15s;
+    }
+    .ghost:hover { border-color: var(--border-hi); color: var(--text); }
+
+    /* ---------- Filter strip ---------- */
+    .filters { display: flex; align-items: center; gap: 9px; padding: 12px 22px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .flabel { font: 600 10px/1 var(--mono); letter-spacing: 1.5px; text-transform: uppercase; color: var(--faint); margin-right: 2px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 7px; padding: 6px 11px; border-radius: 999px; cursor: pointer;
+      background: #0e1320; border: 1px solid var(--border); color: var(--muted); font-size: 12.5px; font-weight: 500;
+      transition: all .14s; user-select: none;
+    }
+    .chip:hover { border-color: var(--border-hi); color: var(--text); }
+    .chip.off { opacity: 0.38; }
+    .chip .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .chip.cat.on { border-color: var(--accent-dim); color: #fff; background: rgba(139,123,255,0.12); }
+    .count { margin-left: auto; font: 500 12px/1 var(--mono); color: var(--muted); }
+
+    /* ---------- Board ---------- */
+    .board { flex: 1; display: flex; gap: 14px; padding: 16px 22px 22px; overflow-x: auto; overflow-y: hidden; }
+    .column { flex: 0 0 300px; display: flex; flex-direction: column; min-height: 0; }
+    .col-head {
+      display: flex; align-items: center; gap: 9px; padding: 4px 6px 11px;
+    }
+    .col-rail { width: 22px; height: 3px; border-radius: 3px; background: var(--accent); }
+    .col-head h3 { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.2px; }
+    .col-count { font: 600 11px/1 var(--mono); color: var(--faint); background: #0e1320; border: 1px solid var(--border); padding: 3px 7px; border-radius: 7px; }
+    .col-body {
+      flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 11px; padding: 4px;
+      border: 1px dashed transparent; border-radius: 14px; transition: background .15s, border-color .15s;
+    }
+    .col-body.drop { background: rgba(139,123,255,0.06); border-color: var(--accent-dim); }
+    .col-empty { color: var(--faint); font: 500 12px/1.5 var(--mono); text-align: center; padding: 26px 8px; border: 1px dashed var(--border); border-radius: 12px; }
+
+    /* ---------- Card ---------- */
+    .card {
+      position: relative; background: linear-gradient(180deg, var(--card-hi), var(--card));
+      border: 1px solid var(--border); border-radius: 14px; padding: 13px 14px; cursor: pointer;
+      transition: transform .12s, border-color .15s, box-shadow .15s; will-change: transform;
+    }
+    .card:hover { border-color: var(--border-hi); transform: translateY(-2px); box-shadow: var(--shadow); }
+    .card.dragging { opacity: 0.5; }
+    .card.applied { border-color: rgba(52,211,153,0.4); }
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .card .company { font-size: 12px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+    .badge {
+      font: 700 9px/1 var(--mono); letter-spacing: 0.5px; padding: 3px 6px; border-radius: 6px; text-transform: uppercase;
+      border: 1px solid transparent;
+    }
+    .badge.ic { background: rgba(96,165,250,0.16); color: #93c5fd; border-color: rgba(96,165,250,0.3); }
+    .badge.lead { background: rgba(139,123,255,0.18); color: #c4bbff; border-color: rgba(139,123,255,0.34); }
+    .badge.em { background: rgba(251,191,36,0.16); color: #fcd34d; border-color: rgba(251,191,36,0.3); }
+    .badge.head { background: rgba(45,212,191,0.16); color: #5eead4; border-color: rgba(45,212,191,0.3); }
+    .badge.ats { background: rgba(148,163,184,0.16); color: #cbd5e1; border-color: rgba(148,163,184,0.3); }
+    .card .role { font-size: 13.5px; font-weight: 600; margin: 8px 0 0; line-height: 1.35; }
+    .card .meta { display: flex; align-items: center; gap: 8px; margin-top: 9px; font-size: 11.5px; color: var(--muted); flex-wrap: wrap; }
+    .card .meta .src { display: inline-flex; align-items: center; gap: 5px; }
+    .card .meta .src .dot { width: 7px; height: 7px; border-radius: 50%; }
+    .chips { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 11px; }
+    .kw { font: 500 10.5px/1 var(--mono); padding: 4px 7px; border-radius: 6px; background: #10182a; border: 1px solid var(--border); color: var(--muted); }
+    .kw.more { color: var(--faint); }
+
+    /* ---------- Score ring ---------- */
+    .ring { --pct: 0; --rc: var(--good); position: relative; width: 42px; height: 42px; flex: none; border-radius: 50%;
+      background: conic-gradient(var(--rc) calc(var(--pct) * 1%), #222b3d 0); display: grid; place-items: center; }
+    .ring::after { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: var(--card); }
+    .ring span { position: relative; z-index: 1; font: 700 13px/1 var(--mono); }
+    .ring.near { --rc: var(--teal); }
+    .ring.near::before { content: ""; position: absolute; inset: -3px; border-radius: 50%; border: 1px dashed rgba(45,212,191,0.5); }
+    .ring.lg { width: 64px; height: 64px; }
+    .ring.lg span { font-size: 19px; }
+
+    /* ---------- Drawer ---------- */
+    .scrim { position: fixed; inset: 0; background: rgba(5,7,12,0.6); backdrop-filter: blur(3px); z-index: 40; }
+    .drawer {
+      position: fixed; top: 0; right: 0; height: 100vh; width: min(480px, 94vw); z-index: 50;
+      background: linear-gradient(180deg, #131a28, #0e131e); border-left: 1px solid var(--border-hi);
+      box-shadow: -30px 0 60px -30px rgba(0,0,0,0.9); display: flex; flex-direction: column;
+    }
+    .drawer-head { padding: 22px 24px 18px; border-bottom: 1px solid var(--border); display: flex; gap: 16px; align-items: flex-start; }
+    .drawer-head .x { margin-left: auto; }
+    .drawer-body { overflow-y: auto; padding: 20px 24px 32px; display: flex; flex-direction: column; gap: 20px; }
+    .d-title { font-size: 18px; font-weight: 700; line-height: 1.3; margin: 2px 0 6px; }
+    .d-company { font: 600 12px/1 var(--mono); color: var(--accent); letter-spacing: 0.5px; }
+    .d-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .pill { font: 500 11px/1 var(--mono); padding: 5px 9px; border-radius: 7px; background: #0e1422; border: 1px solid var(--border); color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+    .section h4 { font: 600 10px/1 var(--mono); letter-spacing: 1.6px; text-transform: uppercase; color: var(--faint); margin: 0 0 10px; }
+    .section ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+    .section li { font-size: 13px; line-height: 1.5; color: #cfd5e4; }
+    .section li.risk { color: #f6b8c0; }
+    .stage-control { display: flex; flex-direction: column; gap: 10px; }
+    .stage-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .stage-btn { padding: 9px 6px; border-radius: 9px; background: #0e1422; border: 1px solid var(--border); color: var(--muted); cursor: pointer; font-size: 12px; font-weight: 600; transition: all .14s; }
+    .stage-btn:hover { border-color: var(--border-hi); color: var(--text); }
+    .stage-btn.active { background: rgba(139,123,255,0.16); border-color: var(--accent-dim); color: #fff; }
+    .react-row { display: flex; gap: 8px; }
+    .react {
+      flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; border-radius: 10px;
+      background: #0e1422; border: 1px solid var(--border); cursor: pointer; font-size: 13px; font-weight: 600; color: var(--muted); transition: all .14s;
+    }
+    .react:hover { border-color: var(--border-hi); color: var(--text); }
+    .react.star.active { background: rgba(251,191,36,0.14); border-color: rgba(251,191,36,0.45); color: #fcd34d; }
+    .react.down.active { background: rgba(251,113,133,0.12); border-color: rgba(251,113,133,0.42); color: #fda4af; }
+    .note-area { width: 100%; min-height: 78px; resize: vertical; padding: 12px 13px; background: #0c1019; border: 1px solid var(--border); border-radius: 11px; line-height: 1.5; transition: border-color .15s, box-shadow .15s; }
+    .note-area:focus { outline: none; border-color: var(--accent-dim); box-shadow: 0 0 0 3px rgba(139,123,255,0.14); }
+    .d-link { display: inline-flex; align-items: center; gap: 8px; padding: 11px 16px; border-radius: 11px; text-decoration: none; font-weight: 700; color: #0a0c12; background: linear-gradient(180deg, #a596ff, var(--accent)); box-shadow: 0 10px 24px -12px rgba(139,123,255,0.8); transition: transform .12s, filter .15s; }
+    .d-link:hover { filter: brightness(1.07); transform: translateY(-1px); }
+    .pack { background: linear-gradient(180deg, rgba(45,212,191,0.06), transparent); border: 1px solid rgba(45,212,191,0.18); border-radius: 13px; padding: 16px; }
+    .pack .cv-line { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    [x-cloak] { display: none !important; }
   </style>
 </head>
 <body>
-<main x-data="jobsApp()" x-init="init()">
+<div x-data="jobsApp()" x-init="init()" x-cloak>
+
+  <!-- ============ LOGIN ============ -->
   <template x-if="!session">
-    <div class="login">
-      <h1>JobHunt</h1>
-      <form @submit.prevent="login()">
-        <input type="email" placeholder="email" x-model="email" autocomplete="username">
-        <input type="password" placeholder="password" x-model="password" autocomplete="current-password">
-        <button class="primary" type="submit">Log in</button>
-      </form>
-      <p class="err" x-text="error"></p>
-    </div>
-  </template>
-
-  <template x-if="session">
-    <div>
-      <div class="controls">
-        <input type="search" placeholder="search title / company" x-model="search">
-        <select x-model="categoryFilter">
-          <option value="">all categories</option>
-          <option value="reviewable">reviewable</option>
-          <option value="location_review">remote review</option>
-          <option value="near_miss">near miss</option>
-        </select>
-        <select x-model="statusFilter">
-          <option value="">all statuses</option>
-          <option value="none">no status</option>
-          <option value="interested">interested</option>
-          <option value="applied">applied</option>
-          <option value="needs_cv">needs_cv</option>
-          <option value="review">review</option>
-          <option value="not_fit">not_fit</option>
-          <option value="false_positive">false_positive</option>
-          <option value="hidden">hidden</option>
-        </select>
-        <label><input type="checkbox" x-model="hideHidden"> hide hidden</label>
-        <span class="muted" x-text="visibleJobs().length + ' / ' + jobs.length + ' jobs'"></span>
-        <button @click="logout()">log out</button>
+    <div class="login-wrap">
+      <div class="login">
+        <div class="brandmark">
+          <div class="logo">◈</div>
+          <div><h1>JobHunt</h1><div class="sub">mission control</div></div>
+        </div>
+        <form @submit.prevent="login()">
+          <label>Email</label>
+          <input type="email" x-model="email" autocomplete="username" placeholder="you@example.com">
+          <label>Password</label>
+          <input type="password" x-model="password" autocomplete="current-password" placeholder="••••••••">
+          <button class="btn-primary" type="submit">Enter control room</button>
+        </form>
+        <p class="err" x-text="error"></p>
       </div>
-      <p class="err" x-text="error"></p>
-
-      <table>
-        <thead>
-          <tr>
-            <th @click="sortBy('company')">Company</th>
-            <th @click="sortBy('title')">Role</th>
-            <th @click="sortBy('category')">Category</th>
-            <th @click="sortBy('score')">Score</th>
-            <th>React</th>
-            <th>Status</th>
-            <th>Note</th>
-            <th>Link</th>
-          </tr>
-        </thead>
-        <tbody>
-          <template x-for="job in visibleJobs()" :key="job.job_key">
-            <tr :class="rowClass(job)">
-              <td x-text="job.company"></td>
-              <td>
-                <span x-text="job.title"></span>
-                <div class="muted" x-text="job.location"></div>
-              </td>
-              <td x-text="job.category"></td>
-              <td x-text="job.final_score ?? job.closeness_score ?? ''"></td>
-              <td style="white-space:nowrap">
-                <button class="react" :class="{active: statusOf(job) === 'interested'}" title="superlike → interested" @click="setStatus(job, 'interested')">⭐</button>
-                <button class="react" :class="{active: statusOf(job) === 'hidden'}" title="hide" @click="setStatus(job, 'hidden')">👎</button>
-              </td>
-              <td>
-                <select :value="statusOf(job)" @change="setStatus(job, $event.target.value)">
-                  <option value="">—</option>
-                  <option value="interested">interested</option>
-                  <option value="applied">applied</option>
-                  <option value="needs_cv">needs_cv</option>
-                  <option value="review">review</option>
-                  <option value="not_fit">not_fit</option>
-                  <option value="false_positive">false_positive</option>
-                  <option value="hidden">hidden</option>
-                </select>
-              </td>
-              <td>
-                <input class="note" type="text" :value="noteOf(job)"
-                       @input.debounce.600ms="setNote(job, $event.target.value)" placeholder="note…">
-              </td>
-              <td><template x-if="job.url"><a :href="job.url" target="_blank" rel="noopener">open</a></template></td>
-            </tr>
-          </template>
-        </tbody>
-      </table>
     </div>
   </template>
-</main>
+
+  <!-- ============ APP ============ -->
+  <template x-if="session">
+    <div class="app">
+      <header class="topbar">
+        <div class="brandmark">
+          <div class="logo">◈</div>
+          <div><h1>JobHunt</h1><div class="sub">mission control</div></div>
+        </div>
+        <div class="search">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="search" placeholder="Search company, role, keyword…" x-model="search">
+        </div>
+        <div class="spacer"></div>
+        <div class="stamp" x-show="lastSeen"><span class="status-dot"></span><span x-text="'pipeline ran ' + lastSeen"></span></div>
+        <button class="ghost" @click="logout()">Log out</button>
+      </header>
+
+      <div class="filters">
+        <span class="flabel">Source</span>
+        <template x-for="s in sources" :key="s">
+          <span class="chip" :class="{off: disabledSources[s]}" @click="toggleSource(s)">
+            <span class="dot" :style="`background:${sourceColor(s)}`"></span><span x-text="s"></span>
+          </span>
+        </template>
+        <span class="flabel" style="margin-left:10px">View</span>
+        <span class="chip cat" :class="{on: cats.reviewable}" @click="cats.reviewable = !cats.reviewable">Matches</span>
+        <span class="chip cat" :class="{on: cats.location_review}" @click="cats.location_review = !cats.location_review">Remote review</span>
+        <span class="chip cat" :class="{on: cats.near_miss}" @click="cats.near_miss = !cats.near_miss">Near miss</span>
+        <span class="chip cat" :class="{on: showDismissed}" @click="showDismissed = !showDismissed">Dismissed</span>
+        <span class="count" x-text="visibleJobs().length + ' / ' + jobs.length + ' shown'"></span>
+      </div>
+
+      <p class="err" x-show="error" x-text="error" style="padding:0 22px"></p>
+
+      <div class="board">
+        <template x-for="col in columns" :key="col.id">
+          <div class="column" x-show="col.id !== 'dismissed' || showDismissed">
+            <div class="col-head">
+              <span class="col-rail" :style="`background:${col.color}`"></span>
+              <h3 x-text="col.label"></h3>
+              <span class="col-count" x-text="jobsIn(col.id).length"></span>
+            </div>
+            <div class="col-body" :class="{drop: dropCol === col.id}"
+                 @dragover.prevent="dropCol = col.id" @dragleave="dropCol = (dropCol===col.id?null:dropCol)"
+                 @drop="moveToColumn(dragKey, col.id); dropCol = null">
+              <template x-for="job in jobsIn(col.id)" :key="job.job_key">
+                <div class="card" :class="{dragging: dragKey===job.job_key, applied: statusOf(job)==='applied'}"
+                     draggable="true" @dragstart="dragKey = job.job_key" @dragend="dragKey = null; dropCol = null"
+                     @click="open(job)">
+                  <div class="card-top">
+                    <div style="min-width:0">
+                      <div class="company">
+                        <span x-text="job.company"></span>
+                        <template x-if="job.cv_profile"><span class="badge" :class="cvClass(job.cv_profile)" x-text="cvLabel(job.cv_profile)"></span></template>
+                      </div>
+                      <div class="role" x-text="job.title"></div>
+                    </div>
+                    <div class="ring" :class="{near: scoreInfo(job).near}" :style="`--pct:${scoreInfo(job).pct}; --rc:${scoreInfo(job).color}`">
+                      <span x-text="scoreInfo(job).pct"></span>
+                    </div>
+                  </div>
+                  <div class="meta">
+                    <span x-text="job.location || 'Location n/a'"></span>
+                    <span class="src">·<span class="dot" :style="`background:${sourceColor(job.source)}`"></span><span x-text="job.source"></span></span>
+                  </div>
+                  <div class="chips" x-show="(job.matched_keywords||[]).length">
+                    <template x-for="kw in (job.matched_keywords||[]).slice(0,3)" :key="kw"><span class="kw" x-text="kw"></span></template>
+                    <template x-if="(job.matched_keywords||[]).length > 3"><span class="kw more" x-text="'+' + ((job.matched_keywords||[]).length - 3)"></span></template>
+                  </div>
+                </div>
+              </template>
+              <template x-if="!jobsIn(col.id).length"><div class="col-empty">— empty —</div></template>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+  </template>
+
+  <!-- ============ DRAWER ============ -->
+  <template x-if="selectedJob()">
+    <div>
+      <div class="scrim" @click="selected = null"></div>
+      <aside class="drawer">
+        <div class="drawer-head">
+          <div class="ring lg" :class="{near: scoreInfo(selectedJob()).near}" :style="`--pct:${scoreInfo(selectedJob()).pct}; --rc:${scoreInfo(selectedJob()).color}`">
+            <span x-text="scoreInfo(selectedJob()).pct"></span>
+          </div>
+          <div style="min-width:0; flex:1">
+            <div class="d-company" x-text="selectedJob().company"></div>
+            <div class="d-title" x-text="selectedJob().title"></div>
+            <div class="d-meta">
+              <span class="pill" x-text="selectedJob().location || 'Location n/a'"></span>
+              <span class="pill"><span class="dot" style="width:7px;height:7px;border-radius:50%" :style="`background:${sourceColor(selectedJob().source)}`"></span><span x-text="selectedJob().source"></span></span>
+              <span class="pill" x-text="scoreInfo(selectedJob()).label"></span>
+            </div>
+          </div>
+          <button class="ghost x" @click="selected = null">✕</button>
+        </div>
+
+        <div class="drawer-body">
+          <template x-if="selectedJob().url">
+            <a class="d-link" :href="selectedJob().url" target="_blank" rel="noopener">Open posting ↗</a>
+          </template>
+
+          <div class="section stage-control">
+            <h4>Pipeline stage</h4>
+            <div class="stage-grid">
+              <template x-for="st in stageOptions" :key="st.value">
+                <button class="stage-btn" :class="{active: statusOf(selectedJob()) === st.value}" @click="setStatus(selectedJob(), st.value)" x-text="st.label"></button>
+              </template>
+            </div>
+            <div class="react-row">
+              <button class="react star" :class="{active: statusOf(selectedJob())==='interested'}" @click="setStatus(selectedJob(), statusOf(selectedJob())==='interested' ? '' : 'interested')">⭐ Interested</button>
+              <button class="react down" :class="{active: isDismissed(statusOf(selectedJob()))}" @click="setStatus(selectedJob(), isDismissed(statusOf(selectedJob())) ? '' : 'hidden')">👎 Dismiss</button>
+            </div>
+          </div>
+
+          <template x-if="(selectedJob().match_reasons||[]).length">
+            <div class="section">
+              <h4>Why it matches</h4>
+              <ul><template x-for="r in selectedJob().match_reasons" :key="r"><li x-text="r"></li></template></ul>
+            </div>
+          </template>
+
+          <template x-if="(selectedJob().signals||[]).length">
+            <div class="section">
+              <h4>Closeness signals</h4>
+              <ul><template x-for="s in selectedJob().signals" :key="s"><li x-text="s"></li></template></ul>
+            </div>
+          </template>
+
+          <template x-if="(selectedJob().matched_keywords||[]).length">
+            <div class="section">
+              <h4>Matched keywords</h4>
+              <div class="chips"><template x-for="kw in selectedJob().matched_keywords" :key="kw"><span class="kw" x-text="kw"></span></template></div>
+            </div>
+          </template>
+
+          <template x-if="(selectedJob().risks||[]).length">
+            <div class="section">
+              <h4>Risks</h4>
+              <ul><template x-for="r in selectedJob().risks" :key="r"><li class="risk" x-text="r"></li></template></ul>
+            </div>
+          </template>
+
+          <template x-if="(selectedJob().reject_reasons||[]).length">
+            <div class="section">
+              <h4>Why it was held back</h4>
+              <ul><template x-for="r in selectedJob().reject_reasons" :key="r"><li class="risk" x-text="r"></li></template></ul>
+            </div>
+          </template>
+
+          <template x-if="selectedJob().cv_profile || (selectedJob().suggested_cv_edits||[]).length">
+            <div class="section">
+              <h4>Application pack</h4>
+              <div class="pack">
+                <div class="cv-line" x-show="selectedJob().cv_profile">
+                  <span class="badge" :class="cvClass(selectedJob().cv_profile)" x-text="cvLabel(selectedJob().cv_profile)"></span>
+                  <span style="font-size:12.5px;color:var(--muted)">suggested CV profile</span>
+                </div>
+                <template x-if="(selectedJob().suggested_cv_edits||[]).length">
+                  <ul style="padding-left:18px;display:flex;flex-direction:column;gap:6px">
+                    <template x-for="e in selectedJob().suggested_cv_edits" :key="e"><li style="font-size:12.5px;line-height:1.5;color:#cfd5e4" x-text="e"></li></template>
+                  </ul>
+                </template>
+              </div>
+            </div>
+          </template>
+
+          <div class="section">
+            <h4>Private note</h4>
+            <textarea class="note-area" placeholder="Thoughts, follow-ups, contacts…"
+                      :value="noteOf(selectedJob())" @input.debounce.600ms="setNote(selectedJob(), $event.target.value)"></textarea>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </template>
+
+</div>
 
 <script>
 const SUPABASE_URL = "https://fncnxlqbhsoinknkgvvb.supabase.co";
 // Publishable key is safe to ship publicly: RLS denies the anon/unauthenticated role all access.
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_QOhba22uPbwlfYqGxRKS5Q_kmfsvO49";
 
+const SOURCE_COLORS = {
+  greenhouse: "#34d399", lever: "#f59e0b", ashby: "#a78bfa", arbeitnow: "#38bdf8",
+  personio: "#2dd4bf", smartrecruiters: "#fb7185", recruitee: "#f472b6",
+  themuse: "#c084fc", remotive: "#22d3ee", adzuna: "#fbbf24", sample: "#64748b",
+};
+const DISMISSED = ["hidden", "not_fit", "false_positive"];
+
 function jobsApp() {
   // Keep the Supabase client in closure scope, NOT in Alpine's reactive data:
   // Alpine would deep-proxy the client's circular internals and overflow the stack.
   const client = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
   return {
     session: null, email: "", password: "", error: "",
     jobs: [], feedback: {},
-    search: "", categoryFilter: "", statusFilter: "", hideHidden: true,
-    sortKey: "score", sortDir: -1,
+    search: "", disabledSources: {}, showDismissed: false,
+    cats: { reviewable: true, location_review: true, near_miss: false },
+    selected: null, dragKey: null, dropCol: null,
+
+    columns: [
+      { id: "new",        label: "New",       color: "#64748b" },
+      { id: "interested", label: "Interested", color: "#fbbf24" },
+      { id: "needs_cv",   label: "CV needed",  color: "#38bdf8" },
+      { id: "applied",    label: "Applied",    color: "#34d399" },
+      { id: "interview",  label: "Interview",  color: "#a78bfa" },
+      { id: "offer",      label: "Offer",      color: "#2dd4bf" },
+      { id: "dismissed",  label: "Dismissed",  color: "#fb7185" },
+    ],
+    stageOptions: [
+      { value: "",            label: "New" },
+      { value: "interested",  label: "Interested" },
+      { value: "needs_cv",    label: "CV needed" },
+      { value: "applied",     label: "Applied" },
+      { value: "interview",   label: "Interview" },
+      { value: "offer",       label: "Offer" },
+      { value: "review",      label: "Review" },
+      { value: "not_fit",     label: "Not fit" },
+      { value: "hidden",      label: "Hidden" },
+    ],
 
     async init() {
       const { data } = await client.auth.getSession();
@@ -147,7 +471,7 @@ function jobsApp() {
       const { error } = await client.auth.signInWithPassword({ email: this.email, password: this.password });
       if (error) this.error = error.message;
     },
-    async logout() { await client.auth.signOut(); this.jobs = []; this.feedback = {}; },
+    async logout() { await client.auth.signOut(); this.jobs = []; this.feedback = {}; this.selected = null; },
 
     async loadData() {
       this.error = "";
@@ -163,11 +487,53 @@ function jobsApp() {
       this.feedback = map;
     },
 
+    get sources() { return [...new Set(this.jobs.map(j => j.source).filter(Boolean))].sort(); },
+    get lastSeen() {
+      const ts = this.jobs.map(j => j.last_seen_at).filter(Boolean).sort();
+      if (!ts.length) return "";
+      return this.ago(new Date(ts[ts.length - 1]));
+    },
+    ago(d) {
+      const mins = Math.round((Date.now() - d.getTime()) / 60000);
+      if (mins < 60) return mins + "m ago";
+      const h = Math.round(mins / 60); if (h < 24) return h + "h ago";
+      return Math.round(h / 24) + "d ago";
+    },
+
     statusOf(job) { return (this.feedback[job.job_key] || {}).status || ""; },
     noteOf(job) { return (this.feedback[job.job_key] || {}).note || ""; },
+    isDismissed(s) { return DISMISSED.includes(s); },
+
+    sourceColor(s) { return SOURCE_COLORS[s] || "#64748b"; },
+    cvLabel(p) { return p === "ats_plain" ? "ATS" : (p || "").toUpperCase(); },
+    cvClass(p) {
+      return { ic: "ic", lead: "lead", em: "em", head: "head", ats_plain: "ats" }[p] || "ats";
+    },
+
+    // Reviewable rows carry final_score (0-100). Near-miss / location-review rows carry
+    // closeness_score, a RAW additive signal tally (~8-25, threshold 8) — NOT a percentage.
+    // Normalize closeness onto a 0-100 band so the ring is comparable, and flag it as "near".
+    scoreInfo(job) {
+      if (job.final_score != null) {
+        const v = Math.round(job.final_score);
+        return { pct: v, near: false, color: this.scoreColor(v), label: "match " + v + "%" };
+      }
+      if (job.closeness_score != null) {
+        const pct = Math.max(5, Math.min(100, Math.round((job.closeness_score / 25) * 100)));
+        return { pct, near: true, color: "#2dd4bf", label: "closeness " + job.closeness_score };
+      }
+      return { pct: 0, near: false, color: "#475569", label: "unscored" };
+    },
+    scoreColor(v) { return v >= 75 ? "#34d399" : v >= 55 ? "#fbbf24" : "#fb7185"; },
+
+    columnOf(job) {
+      const s = this.statusOf(job);
+      if (this.isDismissed(s)) return "dismissed";
+      if (["interested", "needs_cv", "applied", "interview", "offer"].includes(s)) return s;
+      return "new"; // "", "review", or anything unrecognized
+    },
 
     async upsertFeedback(job_key, status, note) {
-      // Clearing both status and note removes the row rather than storing an empty one.
       if (!status && !note) {
         delete this.feedback[job_key];
         const { error } = await client.from("feedback").delete().eq("job_key", job_key);
@@ -182,30 +548,35 @@ function jobsApp() {
     setStatus(job, status) { this.upsertFeedback(job.job_key, status, this.noteOf(job)); },
     setNote(job, note) { this.upsertFeedback(job.job_key, this.statusOf(job), note); },
 
-    sortBy(key) { if (this.sortKey === key) this.sortDir *= -1; else { this.sortKey = key; this.sortDir = key === "score" ? -1 : 1; } },
+    moveToColumn(job_key, colId) {
+      if (!job_key) return;
+      const job = this.jobs.find(j => j.job_key === job_key);
+      if (!job) return;
+      const target = colId === "new" ? "" : colId === "dismissed" ? "hidden" : colId;
+      this.setStatus(job, target);
+    },
+
+    open(job) { this.selected = job.job_key; },
+    selectedJob() { return this.selected ? this.jobs.find(j => j.job_key === this.selected) : null; },
 
     visibleJobs() {
       const q = this.search.trim().toLowerCase();
-      let rows = this.jobs.filter(j => {
-        const status = this.statusOf(j);
-        if (this.hideHidden && (status === "hidden" || status === "not_fit" || status === "false_positive")) return false;
-        if (this.categoryFilter && j.category !== this.categoryFilter) return false;
-        if (this.statusFilter === "none" && status) return false;
-        if (this.statusFilter && this.statusFilter !== "none" && status !== this.statusFilter) return false;
+      return this.jobs.filter(j => {
+        if (this.disabledSources[j.source]) return false;
+        const cat = j.category || "reviewable";
+        if (this.cats[cat] === false) return false;
+        const dismissed = this.isDismissed(this.statusOf(j));
+        if (dismissed && !this.showDismissed) return false;
         if (q && !((j.title || "").toLowerCase().includes(q) || (j.company || "").toLowerCase().includes(q))) return false;
         return true;
       });
-      const key = this.sortKey, dir = this.sortDir;
-      const val = (j) => key === "score" ? (j.final_score ?? j.closeness_score ?? -1) : (j[key] || "");
-      return rows.sort((a, b) => { const x = val(a), y = val(b); return x < y ? -dir : x > y ? dir : 0; });
     },
-
-    rowClass(job) {
-      const s = this.statusOf(job);
-      if (s === "applied") return "row-applied";
-      if (s === "hidden" || s === "not_fit" || s === "false_positive") return "row-hidden";
-      return "";
+    jobsIn(colId) {
+      return this.visibleJobs()
+        .filter(j => this.columnOf(j) === colId)
+        .sort((a, b) => this.scoreInfo(b).pct - this.scoreInfo(a).pct);
     },
+    toggleSource(s) { this.disabledSources[s] = !this.disabledSources[s]; },
   };
 }
 </script>
