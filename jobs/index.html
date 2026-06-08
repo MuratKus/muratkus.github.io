@@ -207,6 +207,15 @@
     .d-link:hover { filter: brightness(1.07); transform: translateY(-1px); }
     .pack { background: linear-gradient(180deg, rgba(45,212,191,0.06), transparent); border: 1px solid rgba(45,212,191,0.18); border-radius: 13px; padding: 16px; }
     .pack .cv-line { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .jobdesc { font-size: 12.5px; line-height: 1.6; color: #cfd5e4; white-space: pre-wrap; max-height: 260px; overflow-y: auto; padding-right: 6px; }
+    .dismiss-modal { position: fixed; z-index: 60; top: 50%; left: 50%; transform: translate(-50%,-50%); width: min(440px,92vw); background: linear-gradient(180deg,#161d2b,#0f1420); border: 1px solid var(--border-hi); border-radius: 16px; padding: 22px 22px 18px; box-shadow: var(--shadow); }
+    .dismiss-modal h3 { margin: 0 0 14px; font-size: 15px; }
+    .reason-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+    .reason-chip { padding: 7px 11px; border-radius: 999px; background: #0e1422; border: 1px solid var(--border); color: var(--muted); cursor: pointer; font-size: 12.5px; transition: all .14s; }
+    .reason-chip:hover { border-color: var(--border-hi); color: var(--text); }
+    .reason-chip.on { background: rgba(251,113,133,0.14); border-color: rgba(251,113,133,0.45); color: #fda4af; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+    .dismiss-confirm { padding: 9px 16px; border-radius: 10px; border: 0; cursor: pointer; font-weight: 700; color: #1a0e12; background: linear-gradient(180deg,#fda4af,#fb7185); }
     [x-cloak] { display: none !important; }
   </style>
 </head>
@@ -342,12 +351,12 @@
             <h4>Pipeline stage</h4>
             <div class="stage-grid">
               <template x-for="st in stageOptions" :key="st.value">
-                <button class="stage-btn" :class="{active: statusOf(selectedJob()) === st.value}" @click="setStatus(selectedJob(), st.value)" x-text="st.label"></button>
+                <button class="stage-btn" :class="{active: statusOf(selectedJob()) === st.value}" @click="chooseStage(selectedJob(), st.value)" x-text="st.label"></button>
               </template>
             </div>
             <div class="react-row">
               <button class="react star" :class="{active: statusOf(selectedJob())==='interested'}" @click="setStatus(selectedJob(), statusOf(selectedJob())==='interested' ? '' : 'interested')">⭐ Interested</button>
-              <button class="react down" :class="{active: isDismissed(statusOf(selectedJob()))}" @click="setStatus(selectedJob(), isDismissed(statusOf(selectedJob())) ? '' : 'hidden')">👎 Dismiss</button>
+              <button class="react down" :class="{active: isDismissed(statusOf(selectedJob()))}" @click="toggleDismiss(selectedJob())">👎 Dismiss</button>
             </div>
           </div>
 
@@ -403,6 +412,13 @@
             </div>
           </template>
 
+          <template x-if="selectedJob().description">
+            <div class="section">
+              <h4>Job description</h4>
+              <div class="jobdesc" x-text="selectedJob().description"></div>
+            </div>
+          </template>
+
           <div class="section">
             <h4>Private note</h4>
             <textarea class="note-area" placeholder="Thoughts, follow-ups, contacts…"
@@ -410,6 +426,26 @@
           </div>
         </div>
       </aside>
+    </div>
+  </template>
+
+  <!-- ============ DISMISS MODAL ============ -->
+  <template x-if="dismissModal">
+    <div>
+      <div class="scrim" @click="cancelDismiss()"></div>
+      <div class="dismiss-modal">
+        <h3>Why dismiss this?</h3>
+        <div class="reason-row">
+          <template x-for="r in dismissReasons" :key="r">
+            <button class="reason-chip" :class="{on: dismissReason === r}" @click="dismissReason = r" x-text="r"></button>
+          </template>
+        </div>
+        <textarea class="note-area" placeholder="Optional note…" x-model="dismissNote"></textarea>
+        <div class="modal-actions">
+          <button class="ghost" @click="cancelDismiss()">Cancel</button>
+          <button class="dismiss-confirm" @click="confirmDismiss()">Dismiss job</button>
+        </div>
+      </div>
     </div>
   </template>
 
@@ -438,6 +474,8 @@ function jobsApp() {
     search: "", disabledSources: {}, showDismissed: false,
     cats: { reviewable: true, location_review: true, near_miss: false },
     selected: null, dragKey: null, dropCol: null,
+    dismissModal: null, dismissReason: "", dismissNote: "",
+    dismissReasons: ["Not a real QA/lead role", "Seniority mismatch", "Location/visa", "German required", "Duplicate", "Already handled", "Other"],
 
     columns: [
       { id: "new",        label: "New",       color: "#64748b" },
@@ -477,13 +515,13 @@ function jobsApp() {
       this.error = "";
       const [jobsRes, fbRes] = await Promise.all([
         client.from("jobs").select("*"),
-        client.from("feedback").select("job_key,status,note"),
+        client.from("feedback").select("job_key,status,note,dismiss_reason"),
       ]);
       if (jobsRes.error) { this.error = jobsRes.error.message; return; }
       if (fbRes.error) { this.error = fbRes.error.message; return; }
       this.jobs = jobsRes.data || [];
       const map = {};
-      (fbRes.data || []).forEach(r => map[r.job_key] = { status: r.status, note: r.note || "" });
+      (fbRes.data || []).forEach(r => map[r.job_key] = { status: r.status, note: r.note || "", dismiss_reason: r.dismiss_reason || "" });
       this.feedback = map;
     },
 
@@ -533,35 +571,78 @@ function jobsApp() {
       return "new"; // "", "review", or anything unrecognized
     },
 
-    async upsertFeedback(job_key, status, note) {
-      if (!status && !note) {
+    async upsertFeedback(job_key, status, note, dismiss_reason = null) {
+      if (!status && !note && !dismiss_reason) {
         delete this.feedback[job_key];
         const { error } = await client.from("feedback").delete().eq("job_key", job_key);
         if (error) this.error = error.message;
         return;
       }
-      const row = { job_key, status, note, updated_at: new Date().toISOString() };
-      this.feedback[job_key] = { status, note };
+      const row = { job_key, status, note, dismiss_reason, updated_at: new Date().toISOString() };
+      this.feedback[job_key] = { status, note, dismiss_reason };
       const { error } = await client.from("feedback").upsert(row);
       if (error) this.error = error.message;
     },
-    setStatus(job, status) { this.upsertFeedback(job.job_key, status, this.noteOf(job)); },
-    setNote(job, note) { this.upsertFeedback(job.job_key, this.statusOf(job), note); },
+    setStatus(job, status) { this.upsertFeedback(job.job_key, status, this.noteOf(job), this.isDismissed(status) ? (this.feedback[job.job_key]||{}).dismiss_reason || "" : null); },
+    setNote(job, note) { this.upsertFeedback(job.job_key, this.statusOf(job), note, (this.feedback[job.job_key]||{}).dismiss_reason || null); },
+    reasonOf(job) { return (this.feedback[job.job_key] || {}).dismiss_reason || ""; },
+
+    requestDismiss(job, status) {
+      // Opening a dismissed status requires a reason; everything else writes through.
+      if (!this.isDismissed(status)) { this.setStatus(job, status); return; }
+      this.dismissModal = job.job_key;
+      this.dismissReason = this.reasonOf(job) || "";
+      this.dismissNote = this.noteOf(job) || "";
+      this._pendingStatus = status;
+    },
+    confirmDismiss() {
+      const key = this.dismissModal; if (!key) return;
+      this.upsertFeedback(key, this._pendingStatus || "hidden", this.dismissNote, this.dismissReason || "(no reason)");
+      this.dismissModal = null;
+    },
+    cancelDismiss() { this.dismissModal = null; },
+    chooseStage(job, status) { this.isDismissed(status) ? this.requestDismiss(job, status) : this.setStatus(job, status); },
+    toggleDismiss(job) {
+      if (this.isDismissed(this.statusOf(job))) { this.setStatus(job, ""); }   // un-dismiss clears reason (null)
+      else { this.requestDismiss(job, "hidden"); }
+    },
 
     moveToColumn(job_key, colId) {
       if (!job_key) return;
       const job = this.jobs.find(j => j.job_key === job_key);
       if (!job) return;
-      const target = colId === "new" ? "" : colId === "dismissed" ? "hidden" : colId;
-      this.setStatus(job, target);
+      if (colId === "dismissed") { this.requestDismiss(job, "hidden"); return; }
+      this.setStatus(job, colId === "new" ? "" : colId);
     },
 
     open(job) { this.selected = job.job_key; },
     selectedJob() { return this.selected ? this.jobs.find(j => j.job_key === this.selected) : null; },
 
+    normTxt(v) { return (v || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); },
+    jobFingerprint(job) {
+      let title = this.normTxt(job.title);
+      for (const t of ["senior", "lead", "staff", "principal", "m f d", "f m d", "m w d"]) {
+        title = title.replace(new RegExp("\\b" + t + "\\b", "g"), " ");
+      }
+      title = title.split(/\s+/).filter(Boolean).join(" ");
+      const loc = this.normTxt(job.location).replace("berlin berlin germany", "berlin germany");
+      return [this.normTxt(job.company), title, loc].join("|");
+    },
+    hasFeedback(job) { const f = this.feedback[job.job_key]; return !!(f && (f.status || f.note || f.dismiss_reason)); },
+    preferred(a, b) {
+      const fa = this.hasFeedback(a) ? 1 : 0, fb = this.hasFeedback(b) ? 1 : 0; if (fa !== fb) return fa > fb ? a : b;
+      const sa = this.scoreInfo(a).pct, sb = this.scoreInfo(b).pct; if (sa !== sb) return sa > sb ? a : b;
+      const da = a.description ? 1 : 0, db = b.description ? 1 : 0; if (da !== db) return da > db ? a : b;
+      return (a.last_seen_at || "") >= (b.last_seen_at || "") ? a : b;
+    },
+    dedupe(rows) {
+      const groups = {};
+      for (const j of rows) { const k = this.jobFingerprint(j); groups[k] = groups[k] ? this.preferred(groups[k], j) : j; }
+      return Object.values(groups);
+    },
     visibleJobs() {
       const q = this.search.trim().toLowerCase();
-      return this.jobs.filter(j => {
+      return this.dedupe(this.jobs.filter(j => {
         if (this.disabledSources[j.source]) return false;
         const cat = j.category || "reviewable";
         if (this.cats[cat] === false) return false;
@@ -569,7 +650,7 @@ function jobsApp() {
         if (dismissed && !this.showDismissed) return false;
         if (q && !((j.title || "").toLowerCase().includes(q) || (j.company || "").toLowerCase().includes(q))) return false;
         return true;
-      });
+      }));
     },
     jobsIn(colId) {
       return this.visibleJobs()
