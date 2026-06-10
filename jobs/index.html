@@ -216,6 +216,17 @@
     .reason-chip.on { background: rgba(251,113,133,0.14); border-color: rgba(251,113,133,0.45); color: #fda4af; }
     .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
     .dismiss-confirm { padding: 9px 16px; border-radius: 10px; border: 0; cursor: pointer; font-weight: 700; color: #1a0e12; background: linear-gradient(180deg,#fda4af,#fb7185); }
+    .trash-modal { position: fixed; z-index: 60; top: 50%; left: 50%; transform: translate(-50%,-50%); width: min(460px,92vw); max-height: 70vh; display: flex; flex-direction: column; background: linear-gradient(180deg,#161d2b,#0f1420); border: 1px solid var(--border-hi); border-radius: 16px; box-shadow: var(--shadow); }
+    .trash-head { display: flex; align-items: center; gap: 12px; padding: 18px 18px 12px; border-bottom: 1px solid var(--border); }
+    .trash-head h3 { margin: 0; font-size: 15px; flex: 1; }
+    .trash-list { overflow-y: auto; padding: 10px 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+    .trash-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 11px; background: #0e1422; border: 1px solid var(--border); }
+    .trash-meta { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+    .trash-company { font: 600 11px/1 var(--mono); color: var(--accent); letter-spacing: 0.4px; }
+    .trash-title { font-size: 13px; font-weight: 600; color: var(--text); }
+    .trash-restore { padding: 7px 13px; border-radius: 9px; border: 1px solid var(--border-hi); background: transparent; color: var(--text); cursor: pointer; font-size: 12.5px; font-weight: 600; transition: all .14s; }
+    .trash-restore:hover { border-color: var(--accent-dim); color: #fff; background: rgba(139,123,255,0.12); }
+    .trash-empty { color: var(--faint); font: 500 12.5px/1.5 var(--mono); text-align: center; padding: 24px 8px; }
     [x-cloak] { display: none !important; }
   </style>
 </head>
@@ -256,6 +267,9 @@
         </div>
         <div class="spacer"></div>
         <div class="stamp" x-show="lastSeen"><span class="status-dot"></span><span x-text="'pipeline ran ' + lastSeen"></span></div>
+        <button class="ghost trash-btn" @click="trashOpen = true" title="Dismissed jobs">
+          🗑 <span x-show="dismissedJobs().length" x-text="dismissedJobs().length"></span>
+        </button>
         <button class="ghost" @click="logout()">Log out</button>
       </header>
 
@@ -270,7 +284,6 @@
         <span class="chip cat" :class="{on: cats.reviewable}" @click="cats.reviewable = !cats.reviewable">Matches</span>
         <span class="chip cat" :class="{on: cats.location_review}" @click="cats.location_review = !cats.location_review">Remote review</span>
         <span class="chip cat" :class="{on: cats.near_miss}" @click="cats.near_miss = !cats.near_miss">Near miss</span>
-        <span class="chip cat" :class="{on: showDismissed}" @click="showDismissed = !showDismissed">Dismissed</span>
         <span class="count" x-text="visibleJobs().length + ' / ' + jobs.length + ' shown'"></span>
       </div>
 
@@ -278,7 +291,7 @@
 
       <div class="board">
         <template x-for="col in columns" :key="col.id">
-          <div class="column" x-show="col.id !== 'dismissed' || showDismissed">
+          <div class="column">
             <div class="col-head">
               <span class="col-rail" :style="`background:${col.color}`"></span>
               <h3 x-text="col.label"></h3>
@@ -449,6 +462,33 @@
     </div>
   </template>
 
+  <!-- ============ TRASH MODAL ============ -->
+  <template x-if="trashOpen">
+    <div>
+      <div class="scrim" @click="trashOpen = false"></div>
+      <div class="trash-modal">
+        <div class="trash-head">
+          <h3 x-text="'🗑 Dismissed jobs (' + dismissedJobs().length + ')'"></h3>
+          <button class="ghost trash-close" @click="trashOpen = false">✕</button>
+        </div>
+        <div class="trash-list">
+          <template x-for="job in dismissedJobs()" :key="job.job_key">
+            <div class="trash-row">
+              <div class="trash-meta">
+                <span class="trash-company" x-text="job.company"></span>
+                <span class="trash-title" x-text="job.title"></span>
+              </div>
+              <button class="trash-restore" @click="restoreJob(job)">Restore</button>
+            </div>
+          </template>
+          <template x-if="!dismissedJobs().length">
+            <div class="trash-empty">No dismissed jobs.</div>
+          </template>
+        </div>
+      </div>
+    </div>
+  </template>
+
 </div>
 
 <script>
@@ -471,9 +511,9 @@ function jobsApp() {
   return {
     session: null, email: "", password: "", error: "",
     jobs: [], feedback: {},
-    search: "", disabledSources: {}, showDismissed: false,
+    search: "", disabledSources: {},
     cats: { reviewable: true, location_review: true, near_miss: false },
-    selected: null, dragKey: null, dropCol: null,
+    selected: null, dragKey: null, dropCol: null, trashOpen: false,
     dismissModal: null, dismissReason: "", dismissNote: "",
     dismissReasons: ["Not a real QA/lead role", "Seniority mismatch", "Location/visa", "German required", "Duplicate", "Already handled", "Other"],
 
@@ -484,7 +524,6 @@ function jobsApp() {
       { id: "applied",    label: "Applied",    color: "#34d399" },
       { id: "interview",  label: "Interview",  color: "#a78bfa" },
       { id: "offer",      label: "Offer",      color: "#2dd4bf" },
-      { id: "dismissed",  label: "Dismissed",  color: "#fb7185" },
     ],
     stageOptions: [
       { value: "",            label: "New" },
@@ -538,8 +577,8 @@ function jobsApp() {
       return Math.round(h / 24) + "d ago";
     },
 
-    statusOf(job) { return (this.feedback[job.job_key] || {}).status || ""; },
-    noteOf(job) { return (this.feedback[job.job_key] || {}).note || ""; },
+    statusOf(job) { return (this.feedback[job?.job_key] || {}).status || ""; },
+    noteOf(job) { return (this.feedback[job?.job_key] || {}).note || ""; },
     isDismissed(s) { return DISMISSED.includes(s); },
 
     sourceColor(s) { return SOURCE_COLORS[s] || "#64748b"; },
@@ -584,8 +623,9 @@ function jobsApp() {
       if (error) this.error = error.message;
     },
     setStatus(job, status) { this.upsertFeedback(job.job_key, status, this.noteOf(job), this.isDismissed(status) ? (this.feedback[job.job_key]||{}).dismiss_reason || "" : null); },
+    restoreJob(job) { this.setStatus(job, ""); },
     setNote(job, note) { this.upsertFeedback(job.job_key, this.statusOf(job), note, (this.feedback[job.job_key]||{}).dismiss_reason || null); },
-    reasonOf(job) { return (this.feedback[job.job_key] || {}).dismiss_reason || ""; },
+    reasonOf(job) { return (this.feedback[job?.job_key] || {}).dismiss_reason || ""; },
 
     requestDismiss(job, status) {
       // Opening a dismissed status requires a reason; everything else writes through.
@@ -599,6 +639,7 @@ function jobsApp() {
       const key = this.dismissModal; if (!key) return;
       this.upsertFeedback(key, this._pendingStatus || "hidden", this.dismissNote, this.dismissReason || "(no reason)");
       this.dismissModal = null;
+      this.selected = null;
     },
     cancelDismiss() { this.dismissModal = null; },
     chooseStage(job, status) { this.isDismissed(status) ? this.requestDismiss(job, status) : this.setStatus(job, status); },
@@ -611,7 +652,6 @@ function jobsApp() {
       if (!job_key) return;
       const job = this.jobs.find(j => j.job_key === job_key);
       if (!job) return;
-      if (colId === "dismissed") { this.requestDismiss(job, "hidden"); return; }
       this.setStatus(job, colId === "new" ? "" : colId);
     },
 
@@ -640,14 +680,17 @@ function jobsApp() {
       for (const j of rows) { const k = this.jobFingerprint(j); groups[k] = groups[k] ? this.preferred(groups[k], j) : j; }
       return Object.values(groups);
     },
+    dismissedJobs() {
+      const rows = this.dedupe(this.jobs.filter(j => this.isDismissed(this.statusOf(j))));
+      return rows.sort((a, b) => (b.last_seen_at || "").localeCompare(a.last_seen_at || ""));
+    },
     visibleJobs() {
       const q = this.search.trim().toLowerCase();
       return this.dedupe(this.jobs.filter(j => {
         if (this.disabledSources[j.source]) return false;
         const cat = j.category || "reviewable";
         if (this.cats[cat] === false) return false;
-        const dismissed = this.isDismissed(this.statusOf(j));
-        if (dismissed && !this.showDismissed) return false;
+        if (this.isDismissed(this.statusOf(j))) return false;
         if (q && !((j.title || "").toLowerCase().includes(q) || (j.company || "").toLowerCase().includes(q))) return false;
         return true;
       }));
